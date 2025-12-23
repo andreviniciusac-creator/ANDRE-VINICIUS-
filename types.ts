@@ -18,29 +18,27 @@ export interface User {
   name: string;
   email: string;
   role: UserRole;
-  avatarSeed: string; // For DiceBear avatar
-  password?: string; // In a real app, never store plain text
+  avatarSeed: string;
+  password?: string;
   status?: UserStatus;
 }
 
-export interface LoginSession {
+export interface Customer {
   id: string;
-  userId: string;
-  userName: string;
-  role: UserRole;
-  loginTime: string; // ISO String
-}
-
-export interface Attendance {
-  id: string;
-  date: string;
-  sellerId: string;
-  sellerName: string;
-  wasSale: boolean; // true if it became a sale, false if just a consultation
+  name: string;
+  phone: string;
+  cpf: string; // CPF para unicidade
+  email?: string;
+  birthday?: string; // YYYY-MM-DD
+  totalSpent: number;
+  lastPurchase?: string;
+  createdAt: string;
+  registeredBy: string; // Nome do usuário que cadastrou
 }
 
 export interface Product {
   id: string;
+  styleCode: string; // SKU principal para agrupar grades
   name: string;
   category: string;
   price: number;
@@ -52,35 +50,56 @@ export interface Product {
   imageUrl?: string;
 }
 
-export interface CartItem extends Product {
-  quantity: number;
-  originalPrice: number; // To track if price was changed
-  priceNote?: string; // Reason for price change
-}
-
 export interface SaleItem {
   productId: string;
   productName: string;
   quantity: number;
   priceAtSale: number;
-  note?: string;
+  size?: string;
+  color?: string;
 }
 
 export interface Sale {
   id: string;
-  date: string; // ISO string
+  date: string;
   sellerId: string;
   sellerName: string;
+  customerId?: string;
+  customerName?: string;
   items: SaleItem[];
   total: number;
   paymentMethod: PaymentMethod;
-  paymentDetails?: string; // Ex: "Maquininha NuBank", "Pix Pedro Oliveira"
+  paymentDetails?: string;
+  exchangeCreditUsed?: number;
+}
+
+export interface ExchangeRecord {
+  id: string;
+  date: string;
+  originalSaleId: string;
+  customerName: string;
+  returnedItems: SaleItem[];
+  creditAmount: number;
+  status: 'DISPONIVEL' | 'UTILIZADO';
+  usedInSaleId?: string;
+}
+
+export interface StoreGoal {
+  month: number;
+  year: number;
+  target: number;
+}
+
+export interface CartItem extends Product {
+  quantity: number;
+  originalPrice: number;
+  priceNote?: string;
 }
 
 export interface CashAdjustment {
   id: string;
   date: string;
-  type: 'SOBRA' | 'FALTA'; // Sobra (dinheiro a mais/entrada), Falta (dinheiro a menos/saída/perda)
+  type: 'SOBRA' | 'FALTA';
   amount: number;
   justification: string;
   performedBy: string;
@@ -110,7 +129,7 @@ export interface Purchase {
 
 export interface PCPTask {
   id: string;
-  dayOfWeek: number; // 0 (Dom) to 6 (Sab)
+  dayOfWeek: number;
   title: string;
   description: string;
   category: PCPTaskCategory;
@@ -120,9 +139,9 @@ export interface PCPTask {
 
 export interface AuditLog {
   id: string;
-  action: string; // e.g., "USER_DELETED"
+  action: string;
   description: string;
-  performedBy: string; // Name of admin
+  performedBy: string;
   timestamp: string;
 }
 
@@ -140,10 +159,26 @@ export interface DailyClosure {
   date: string;
   closedBy: string;
   totalSales: number;
-  totalGifts: number; // Value of items given away
+  totalGifts: number;
   salesCount: number;
   giftsCount: number;
   attendancesCount: number;
-  adjustmentsTotal: number; // Net value of adjustments
+  adjustmentsTotal: number;
   paymentBreakdown: Record<PaymentMethod, number>;
+}
+
+export interface Attendance {
+  id: string;
+  date: string;
+  sellerId: string;
+  sellerName: string;
+  wasSale: boolean;
+}
+
+export interface LoginSession {
+  id: string;
+  userId: string;
+  userName: string;
+  role: UserRole;
+  loginTime: string;
 }

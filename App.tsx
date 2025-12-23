@@ -11,6 +11,7 @@ import { AuditPanel } from './pages/AuditPanel';
 import { Financial } from './pages/Financial';
 import { PCPCalendar } from './pages/PCPCalendar';
 import { Accounting } from './pages/Accounting';
+import { Customers } from './pages/Customers';
 import { storageService } from './services/storage.ts';
 import { User, UserRole, Product, Sale } from './types';
 
@@ -102,6 +103,9 @@ function App() {
       
       case 'pos':
         return <POS products={products} currentUser={user} onSaleComplete={refreshData} />;
+      
+      case 'customers':
+        return <Customers currentUser={user} />;
       
       case 'products':
         return <Inventory products={products} currentUser={user} onUpdate={refreshData} />;

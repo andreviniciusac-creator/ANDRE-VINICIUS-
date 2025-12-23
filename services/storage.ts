@@ -1,31 +1,13 @@
-import { User, UserRole, Product, Sale, AuditLog, Gift, DailyClosure, LoginSession, CashAdjustment, Attendance, ServiceOrder, ServiceCategory, PCPTask, Purchase } from '../types';
 
-const INITIAL_USERS: User[] = [
-  { id: 'owner', name: 'Kethellem (Proprietária)', email: 'dona@loja.com', role: UserRole.OWNER, avatarSeed: 'Kethellem', password: 'admin123', status: 'Ativo' },
-  { id: 's1', name: 'Ana Silva', email: 'ana@loja.com', role: UserRole.SELLER, avatarSeed: 'Ana', password: '123', status: 'Ativo' },
-  { id: 's2', name: 'Beatriz Souza', email: 'beatriz@loja.com', role: UserRole.SELLER, avatarSeed: 'Beatriz', password: '123', status: 'Ativo' },
-  { id: 's3', name: 'Carla Lima', email: 'carla@loja.com', role: UserRole.SELLER, avatarSeed: 'Carla', password: '123', status: 'Ativo' }
-];
-
-const INITIAL_PRODUCTS: Product[] = [
-  { id: '101', name: 'Vestido Midi Floral Premium', category: 'Vestidos', price: 240.00, cost: 120.00, stock: 15, size: 'M', color: 'Floral', description: 'Vestido elegante para primavera.' },
-  { id: '102', name: 'Blusa Seda Rose Chic', category: 'Blusas', price: 180.00, cost: 90.00, stock: 20, size: 'P', color: 'Rose', description: 'Blusa delicada.' },
-  { id: '103', name: 'Calça Alfaiataria Lux', category: 'Calças', price: 320.00, cost: 160.00, stock: 8, size: '40', color: 'Preto', description: 'Corte moderno.' },
-  { id: '104', name: 'Conjunto Tweed Inverno', category: 'Conjuntos', price: 450.00, cost: 225.00, stock: 10, size: 'G', color: 'Cinza', description: 'Peça de alto padrão.' },
-];
-
-const INITIAL_PCP: PCPTask[] = [
-  { id: 'pcp1', dayOfWeek: 1, title: 'Chegada do Fardo', description: 'Recebimento da coleção nova e conferência inicial.', category: 'LOGISTICA', completed: false, time: '09:00' },
-  { id: 'pcp2', dayOfWeek: 2, title: 'Conferência Cega', description: 'Contagem das peças sem ver a nota e Etiquetagem.', category: 'CONFERENCIA', completed: false, time: '10:00' },
-  { id: 'pcp3', dayOfWeek: 3, title: 'Manutenção de Loja', description: 'Ajuste de Iluminação e Araras para o lançamento.', category: 'MANUTENCAO', completed: false, time: '14:00' },
-  { id: 'pcp4', dayOfWeek: 4, title: 'Gravação (Videomaker)', description: 'Sessão de fotos e Reels para o Instagram.', category: 'PRODUCAO', completed: false, time: '13:00' },
-  { id: 'pcp5', dayOfWeek: 5, title: 'Coquetel Lançamento', description: 'Evento oficial para clientes vips e amigas.', category: 'EVENTO', completed: false, time: '18:00' },
-];
+import { User, UserRole, Product, Sale, AuditLog, Gift, DailyClosure, LoginSession, CashAdjustment, Attendance, ServiceOrder, ServiceCategory, PCPTask, Purchase, Customer, StoreGoal, ExchangeRecord } from '../types';
 
 const KEYS = {
   USERS: 'chic_users',
   PRODUCTS: 'chic_products',
   SALES: 'chic_sales',
+  CUSTOMERS: 'chic_customers',
+  GOALS: 'chic_goals',
+  EXCHANGES: 'chic_exchanges',
   SESSION: 'chic_session',
   AUDIT: 'chic_audit',
   GIFTS: 'chic_gifts',
@@ -38,314 +20,242 @@ const KEYS = {
   PURCHASES: 'chic_purchases'
 };
 
-const getDemoData = () => {
-  const mockSales: Sale[] = [];
-  const mockAttendances: Attendance[] = [];
-  const mockServiceOrders: ServiceOrder[] = [];
-  
-  const sellers = INITIAL_USERS.filter(u => u.role === UserRole.SELLER);
-  
-  // Generating data for Jan to Nov 2025 to ensure DRE is populated
-  for (let month = 0; month <= 10; month++) {
-    // Each month fixed and variable expenses
-    mockServiceOrders.push({
-      id: `os-fix-${month}-1`,
-      date: new Date(2025, month, 5).toISOString(),
-      category: 'MARKETING',
-      providerName: 'Agência Digital Rio Branco',
-      description: 'Gestão de tráfego pago (Facebook/Instagram Ads)',
-      amount: 1250.00,
-      status: 'PAGO',
-      performedBy: 'Kethellem (Proprietária)'
-    });
-    mockServiceOrders.push({
-      id: `os-fix-${month}-2`,
-      date: new Date(2025, month, 10).toISOString(),
-      category: 'VIDEOMAKER',
-      providerName: 'Luz & Som Produções',
-      description: 'Cobertura de lançamento e Reels semanais',
-      amount: 950.00,
-      status: 'PAGO',
-      performedBy: 'Kethellem (Proprietária)'
-    });
-    mockServiceOrders.push({
-      id: `os-fix-${month}-3`,
-      date: new Date(2025, month, 15).toISOString(),
-      category: 'OUTROS',
-      providerName: 'Contabilidade Acre Ltda',
-      description: 'Honorários Contábeis',
-      amount: 450.00,
-      status: 'PAGO',
-      performedBy: 'Kethellem (Proprietária)'
-    });
-
-    // Sales following markup rules (Cost ~50% of Price)
-    sellers.forEach(seller => {
-      // Sellers have different performance
-      const salesCount = seller.id === 's1' ? 40 : (seller.id === 's2' ? 30 : 25);
-      for (let i = 0; i < salesCount; i++) {
-        const day = 1 + Math.floor(Math.random() * 28);
-        const randomProduct = INITIAL_PRODUCTS[Math.floor(Math.random() * INITIAL_PRODUCTS.length)];
-        const qty = 1 + Math.floor(Math.random() * 2);
-        const saleValue = randomProduct.price * qty;
-        
-        const pMethods: any[] = ['PIX', 'CARTAO', 'CARTAO', 'DINHEIRO'];
-        const pMethod = pMethods[Math.floor(Math.random() * pMethods.length)];
-        
-        mockSales.push({
-          id: `demo-sale-2025-${month}-${seller.id}-${i}`,
-          date: new Date(2025, month, day, 10 + (i % 8), 0).toISOString(),
-          sellerId: seller.id,
-          sellerName: seller.name,
-          items: [{
-            productId: randomProduct.id,
-            productName: randomProduct.name,
-            quantity: qty,
-            priceAtSale: randomProduct.price
-          }],
-          total: saleValue,
-          paymentMethod: pMethod,
-          paymentDetails: 'Demonstração de Venda 2025'
-        });
-
-        mockAttendances.push({
-          id: `att-demo-${month}-${seller.id}-${i}`,
-          date: new Date(2025, month, day).toISOString(),
-          sellerId: seller.id,
-          sellerName: seller.name,
-          wasSale: true
-        });
-      }
-    });
-  }
-
-  return { mockSales, mockAttendances, mockServiceOrders };
-};
+const INITIAL_USERS: User[] = [
+  { id: 'owner', name: 'Kethellem (Proprietária)', email: 'dona@loja.com', role: UserRole.OWNER, avatarSeed: 'Kethellem', password: 'admin123', status: 'Ativo' },
+  { id: 's1', name: 'Ana Silva', email: 'ana@loja.com', role: UserRole.SELLER, avatarSeed: 'Ana', password: '123', status: 'Ativo' }
+];
 
 export const storageService = {
-  hasUsers: (): boolean => storageService.getUsers().length > 0,
-  
-  login: async (email: string, password: string): Promise<User | null> => {
-    const users = storageService.getUsers();
-    const user = users.find(u => u.email.toLowerCase() === email.toLowerCase() && u.password === password);
-    if (user) {
-      localStorage.setItem(KEYS.SESSION, JSON.stringify(user));
-      storageService.recordLogin(user);
-      return user;
-    }
-    return null;
+  // Customers
+  getCustomers: (): Customer[] => JSON.parse(localStorage.getItem(KEYS.CUSTOMERS) || '[]'),
+  saveCustomer: (customer: Customer) => {
+    const customers = storageService.getCustomers();
+    const duplicate = customers.find(c => c.cpf === customer.cpf && c.id !== customer.id);
+    if (duplicate) throw new Error(`Já existe um cliente cadastrado com este CPF (${customer.cpf})`);
+    const index = customers.findIndex(c => c.id === customer.id);
+    if (index >= 0) customers[index] = customer;
+    else customers.push(customer);
+    localStorage.setItem(KEYS.CUSTOMERS, JSON.stringify(customers));
   },
-
-  logout: () => localStorage.removeItem(KEYS.SESSION),
-  getCurrentUser: (): User | null => {
-    const session = localStorage.getItem(KEYS.SESSION);
-    return session ? JSON.parse(session) : null;
-  },
-
-  getAttendances: (): Attendance[] => {
-    const stored = localStorage.getItem(KEYS.ATTENDANCES);
-    if (!stored) {
-      const { mockAttendances } = getDemoData();
-      localStorage.setItem(KEYS.ATTENDANCES, JSON.stringify(mockAttendances));
-      return mockAttendances;
-    }
-    return JSON.parse(stored);
-  },
-
-  recordAttendance: (seller: {id: string, name: string}, wasSale: boolean = false) => {
-    const attendances = storageService.getAttendances();
-    attendances.push({ id: Date.now().toString(), date: new Date().toISOString(), sellerId: seller.id, sellerName: seller.name, wasSale });
-    localStorage.setItem(KEYS.ATTENDANCES, JSON.stringify(attendances));
-  },
-
-  getUsers: (): User[] => {
-    const stored = localStorage.getItem(KEYS.USERS);
-    if (!stored) {
-      localStorage.setItem(KEYS.USERS, JSON.stringify(INITIAL_USERS));
-      return INITIAL_USERS;
-    }
-    return JSON.parse(stored);
-  },
-
-  saveUser: (user: User) => {
-    const users = storageService.getUsers();
-    const index = users.findIndex(u => u.id === user.id);
-    if (index >= 0) users[index] = { ...users[index], ...user };
-    else users.push(user);
-    localStorage.setItem(KEYS.USERS, JSON.stringify(users));
-  },
-
-  updateUser: (user: User) => {
-    const users = storageService.getUsers();
-    const index = users.findIndex(u => u.id === user.id);
-    if (index >= 0) {
-      users[index] = user;
-      localStorage.setItem(KEYS.USERS, JSON.stringify(users));
-      const currentUser = storageService.getCurrentUser();
-      if (currentUser && currentUser.id === user.id) localStorage.setItem(KEYS.SESSION, JSON.stringify(user));
-    }
-  },
-
-  deleteUser: (id: string, performedBy: string) => {
-    const users = storageService.getUsers();
-    const userToDelete = users.find(u => u.id === id);
-    if (userToDelete) {
+  deleteCustomer: (id: string, performedBy: string) => {
+    const customers = storageService.getCustomers();
+    const customer = customers.find(c => c.id === id);
+    if (customer) {
+      localStorage.setItem(KEYS.CUSTOMERS, JSON.stringify(customers.filter(c => c.id !== id)));
       storageService.addAuditLog({
-        id: Date.now().toString(),
-        action: 'USUÁRIO_EXCLUÍDO',
-        description: `Exclusão definitiva de ${userToDelete.name} (${userToDelete.role})`,
-        performedBy: performedBy,
+        id: `audit-${Date.now()}`,
+        action: 'CLIENTE_EXCLUÍDO',
+        description: `Exclusão da cliente ${customer.name} (CPF: ${customer.cpf})`,
+        performedBy,
         timestamp: new Date().toISOString()
       });
-      localStorage.setItem(KEYS.USERS, JSON.stringify(users.filter(u => u.id !== id)));
     }
   },
 
-  verifyOwnerPassword: (password: string): boolean => {
-    const users = storageService.getUsers();
-    const owner = users.find(u => u.role === UserRole.OWNER);
-    return owner ? owner.password === password : false;
-  },
-
-  verifyAuditorPassword: (password: string): boolean => {
-    const users = storageService.getUsers();
-    const auditor = users.find(u => u.role === UserRole.AUDITOR);
-    return auditor ? auditor.password === password : false;
-  },
-
-  getAuditLogs: (): AuditLog[] => JSON.parse(localStorage.getItem(KEYS.AUDIT) || '[]'),
-  
-  addAuditLog: (log: AuditLog) => {
-    const logs = storageService.getAuditLogs();
-    logs.unshift(log); 
-    localStorage.setItem(KEYS.AUDIT, JSON.stringify(logs));
-  },
-
-  getProducts: (): Product[] => {
-    const stored = localStorage.getItem(KEYS.PRODUCTS);
-    if (!stored) {
-      localStorage.setItem(KEYS.PRODUCTS, JSON.stringify(INITIAL_PRODUCTS));
-      return INITIAL_PRODUCTS;
-    }
-    return JSON.parse(stored);
-  },
-  
-  saveProduct: (product: Product) => {
-    const products = storageService.getProducts();
-    const index = products.findIndex(p => p.id === product.id);
-    if (index >= 0) products[index] = product;
-    else products.push(product);
-    localStorage.setItem(KEYS.PRODUCTS, JSON.stringify(products));
-  },
-
-  deleteProduct: (id: string) => {
-    const products = storageService.getProducts();
-    localStorage.setItem(KEYS.PRODUCTS, JSON.stringify(products.filter(p => p.id !== id)));
-  },
-  
-  getSales: (): Sale[] => {
-    const stored = localStorage.getItem(KEYS.SALES);
-    // Force seeding if data exists but it's not the new 2025 demo data
-    if (!stored || (stored && !stored.includes('demo-sale-2025'))) {
-      const { mockSales, mockAttendances, mockServiceOrders } = getDemoData();
-      localStorage.setItem(KEYS.SALES, JSON.stringify(mockSales));
-      localStorage.setItem(KEYS.ATTENDANCES, JSON.stringify(mockAttendances));
-      localStorage.setItem(KEYS.SERVICE_ORDERS, JSON.stringify(mockServiceOrders));
-      return mockSales;
-    }
-    return JSON.parse(stored);
-  },
-
+  // Sales & Gifts
+  getSales: (): Sale[] => JSON.parse(localStorage.getItem(KEYS.SALES) || '[]'),
   createSale: (sale: Sale) => {
     const sales = storageService.getSales();
     sales.push(sale);
     localStorage.setItem(KEYS.SALES, JSON.stringify(sales));
-    storageService.recordAttendance({id: sale.sellerId, name: sale.sellerName}, true);
+    
+    // Baixa estoque
+    const products = storageService.getProducts();
+    sale.items.forEach(item => {
+      const pIdx = products.findIndex(p => p.id === item.productId);
+      if (pIdx >= 0) products[pIdx].stock -= item.quantity;
+    });
+    localStorage.setItem(KEYS.PRODUCTS, JSON.stringify(products));
+
+    if (sale.customerId) {
+      const customers = storageService.getCustomers();
+      const cIdx = customers.findIndex(c => c.id === sale.customerId);
+      if (cIdx >= 0) {
+        customers[cIdx].totalSpent += sale.total;
+        customers[cIdx].lastPurchase = sale.date;
+        localStorage.setItem(KEYS.CUSTOMERS, JSON.stringify(customers));
+      }
+    }
   },
 
-  getAdjustments: (): CashAdjustment[] => JSON.parse(localStorage.getItem(KEYS.ADJUSTMENTS) || '[]'),
-  
-  createAdjustment: (adjustment: CashAdjustment) => {
-    const adjustments = storageService.getAdjustments();
-    adjustments.push(adjustment);
-    localStorage.setItem(KEYS.ADJUSTMENTS, JSON.stringify(adjustments));
-  },
-
-  getGifts: (): Gift[] => JSON.parse(localStorage.getItem(KEYS.GIFTS) || '[]'),
   createGift: (gift: Gift) => {
-    const gifts = storageService.getGifts();
+    const gifts = JSON.parse(localStorage.getItem(KEYS.GIFTS) || '[]');
     gifts.push(gift);
     localStorage.setItem(KEYS.GIFTS, JSON.stringify(gifts));
+
+    // Baixa estoque mesmo sendo brinde/parceria (Evita furo)
+    const products = storageService.getProducts();
+    gift.items.forEach(item => {
+      // FIX: Changed item.productId to item.id as CartItem extends Product which has 'id', not 'productId'
+      const pIdx = products.findIndex(p => p.id === item.id);
+      if (pIdx >= 0) products[pIdx].stock -= item.quantity;
+    });
+    localStorage.setItem(KEYS.PRODUCTS, JSON.stringify(products));
+
+    storageService.addAuditLog({
+      id: `gift-${Date.now()}`,
+      action: 'PARCERIA_REGISTRADA',
+      description: `Retirada de ${gift.items.length} itens por ${gift.influencerName} (Valor: R$ ${gift.totalValue.toFixed(2)})`,
+      performedBy: gift.authorizedBy,
+      timestamp: gift.date
+    });
   },
 
-  getServiceOrders: (): ServiceOrder[] => {
-    const stored = localStorage.getItem(KEYS.SERVICE_ORDERS);
-    if (!stored) {
-      const { mockServiceOrders } = getDemoData();
-      localStorage.setItem(KEYS.SERVICE_ORDERS, JSON.stringify(mockServiceOrders));
-      return mockServiceOrders;
+  // Exchanges
+  getExchanges: (): ExchangeRecord[] => JSON.parse(localStorage.getItem(KEYS.EXCHANGES) || '[]'),
+  createExchange: (exchange: ExchangeRecord) => {
+    const exchanges = storageService.getExchanges();
+    exchanges.push(exchange);
+    localStorage.setItem(KEYS.EXCHANGES, JSON.stringify(exchanges));
+    const products = storageService.getProducts();
+    exchange.returnedItems.forEach(item => {
+      const pIdx = products.findIndex(p => p.id === item.productId);
+      if (pIdx >= 0) products[pIdx].stock += item.quantity;
+    });
+    localStorage.setItem(KEYS.PRODUCTS, JSON.stringify(products));
+    storageService.addAuditLog({
+      id: `ex-${Date.now()}`,
+      action: 'TROCA_REALIZADA',
+      description: `Crédito de R$ ${exchange.creditAmount.toFixed(2)} gerado para ${exchange.customerName}`,
+      performedBy: storageService.getCurrentUser()?.name || 'Sistema',
+      timestamp: exchange.date
+    });
+  },
+
+  // Auth & Misc
+  getUsers: (): User[] => JSON.parse(localStorage.getItem(KEYS.USERS) || JSON.stringify(INITIAL_USERS)),
+  hasUsers: (): boolean => storageService.getUsers().length > 0,
+  saveUser: (user: User) => {
+    const users = storageService.getUsers();
+    users.push(user);
+    localStorage.setItem(KEYS.USERS, JSON.stringify(users));
+  },
+  // FIX: Added missing deleteUser method for pages/Users.tsx
+  deleteUser: (id: string, performedBy: string) => {
+    const users = storageService.getUsers();
+    const user = users.find(u => u.id === id);
+    if (user) {
+      localStorage.setItem(KEYS.USERS, JSON.stringify(users.filter(u => u.id !== id)));
+      storageService.addAuditLog({
+        id: `audit-user-${Date.now()}`,
+        action: 'USUÁRIO_EXCLUÍDO',
+        description: `Exclusão do usuário ${user.name} (${user.role}) - Motivo/Por: ${performedBy}`,
+        performedBy: storageService.getCurrentUser()?.name || 'Sistema',
+        timestamp: new Date().toISOString()
+      });
     }
-    return JSON.parse(stored);
   },
-
-  saveServiceOrder: (order: ServiceOrder) => {
+  getCurrentUser: (): User | null => JSON.parse(localStorage.getItem(KEYS.SESSION) || 'null'),
+  login: async (email: string, password: string): Promise<User | null> => {
+    const user = storageService.getUsers().find(u => u.email === email && u.password === password);
+    if (user) {
+      localStorage.setItem(KEYS.SESSION, JSON.stringify(user));
+      const logs = storageService.getLoginLogs();
+      logs.unshift({ id: Date.now().toString(), userId: user.id, userName: user.name, role: user.role, loginTime: new Date().toISOString() });
+      localStorage.setItem(KEYS.LOGIN_LOGS, JSON.stringify(logs.slice(0, 100)));
+      return user;
+    }
+    return null;
+  },
+  logout: () => localStorage.removeItem(KEYS.SESSION),
+  getLoginLogs: (): LoginSession[] => JSON.parse(localStorage.getItem(KEYS.LOGIN_LOGS) || '[]'),
+  getAuditLogs: (): AuditLog[] => JSON.parse(localStorage.getItem(KEYS.AUDIT) || '[]'),
+  addAuditLog: (log: AuditLog) => {
+    const logs = storageService.getAuditLogs();
+    logs.unshift(log);
+    localStorage.setItem(KEYS.AUDIT, JSON.stringify(logs));
+  },
+  getGoals: (): StoreGoal[] => JSON.parse(localStorage.getItem(KEYS.GOALS) || '[]'),
+  saveGoal: (goal: StoreGoal) => {
+    const goals = storageService.getGoals();
+    const index = goals.findIndex(g => g.month === goal.month && g.year === goal.year);
+    if (index >= 0) goals[index] = goal; else goals.push(goal);
+    localStorage.setItem(KEYS.GOALS, JSON.stringify(goals));
+  },
+  getCurrentMonthGoal: (): number => {
+    const goals = storageService.getGoals();
+    const now = new Date();
+    const goal = goals.find(g => g.month === now.getMonth() && g.year === now.getFullYear());
+    return goal ? goal.target : 50000;
+  },
+  getProducts: (): Product[] => JSON.parse(localStorage.getItem(KEYS.PRODUCTS) || '[]'),
+  saveProduct: (p: Product) => {
+    const products = storageService.getProducts();
+    const idx = products.findIndex(item => item.id === p.id);
+    if (idx >= 0) products[idx] = p; else products.push(p);
+    localStorage.setItem(KEYS.PRODUCTS, JSON.stringify(products));
+  },
+  // FIX: Added missing saveProductGrid method for pages/Inventory.tsx
+  saveProductGrid: (baseData: any, variants: { size: string, color: string, stock: number }[]) => {
+    const products = storageService.getProducts();
+    variants.forEach(variant => {
+      const id = `${baseData.styleCode}-${variant.size}`;
+      const existingIdx = products.findIndex(p => p.id === id);
+      const product: Product = {
+        id,
+        styleCode: baseData.styleCode,
+        name: baseData.name,
+        category: baseData.category,
+        price: baseData.price,
+        cost: baseData.cost,
+        stock: variant.stock,
+        size: variant.size,
+        color: variant.color,
+        description: baseData.description,
+        imageUrl: baseData.imageUrl
+      };
+      if (existingIdx >= 0) products[existingIdx] = product;
+      else products.push(product);
+    });
+    localStorage.setItem(KEYS.PRODUCTS, JSON.stringify(products));
+  },
+  deleteProduct: (id: string) => {
+    const products = storageService.getProducts();
+    localStorage.setItem(KEYS.PRODUCTS, JSON.stringify(products.filter(p => p.id !== id)));
+  },
+  updateUser: (u: User) => {
+    const users = storageService.getUsers();
+    const idx = users.findIndex(item => item.id === u.id);
+    if (idx >= 0) users[idx] = u;
+    localStorage.setItem(KEYS.USERS, JSON.stringify(users));
+  },
+  verifyOwnerPassword: (password: string): boolean => {
+    const users = storageService.getUsers();
+    const owner = users.find(u => u.role === UserRole.OWNER);
+    return owner?.password === password;
+  },
+  verifyAuditorPassword: (password: string): boolean => {
+    const users = storageService.getUsers();
+    const auditor = users.find(u => u.role === UserRole.AUDITOR);
+    return auditor?.password === password;
+  },
+  getClosures: (): DailyClosure[] => JSON.parse(localStorage.getItem(KEYS.CLOSURES) || '[]'),
+  getAdjustments: (): CashAdjustment[] => JSON.parse(localStorage.getItem(KEYS.ADJUSTMENTS) || '[]'),
+  getServiceOrders: (): ServiceOrder[] => JSON.parse(localStorage.getItem(KEYS.SERVICE_ORDERS) || '[]'),
+  saveServiceOrder: (o: ServiceOrder) => {
     const orders = storageService.getServiceOrders();
-    const index = orders.findIndex(o => o.id === order.id);
-    if (index >= 0) orders[index] = order;
-    else orders.push(order);
+    orders.push(o);
     localStorage.setItem(KEYS.SERVICE_ORDERS, JSON.stringify(orders));
   },
-
   deleteServiceOrder: (id: string) => {
     const orders = storageService.getServiceOrders();
     localStorage.setItem(KEYS.SERVICE_ORDERS, JSON.stringify(orders.filter(o => o.id !== id)));
   },
-
-  getPurchases: (): Purchase[] => JSON.parse(localStorage.getItem(KEYS.PURCHASES) || '[]'),
-  savePurchase: (purchase: Purchase) => {
-    const purchases = storageService.getPurchases();
-    purchases.push(purchase);
-    localStorage.setItem(KEYS.PURCHASES, JSON.stringify(purchases));
-  },
-
-  getPCPTasks: (): PCPTask[] => {
-    const stored = localStorage.getItem(KEYS.PCP);
-    if (!stored) {
-      localStorage.setItem(KEYS.PCP, JSON.stringify(INITIAL_PCP));
-      return INITIAL_PCP;
-    }
-    return JSON.parse(stored);
-  },
-
-  savePCPTask: (task: PCPTask) => {
+  getPCPTasks: (): PCPTask[] => JSON.parse(localStorage.getItem(KEYS.PCP) || '[]'),
+  savePCPTask: (t: PCPTask) => {
     const tasks = storageService.getPCPTasks();
-    const index = tasks.findIndex(t => t.id === task.id);
-    if (index >= 0) tasks[index] = task;
-    else tasks.push(task);
+    const idx = tasks.findIndex(item => item.id === t.id);
+    if (idx >= 0) tasks[idx] = t; else tasks.push(t);
     localStorage.setItem(KEYS.PCP, JSON.stringify(tasks));
   },
-
   deletePCPTask: (id: string) => {
     const tasks = storageService.getPCPTasks();
     localStorage.setItem(KEYS.PCP, JSON.stringify(tasks.filter(t => t.id !== id)));
   },
-
-  getClosures: (): DailyClosure[] => JSON.parse(localStorage.getItem(KEYS.CLOSURES) || '[]'),
-  createClosure: (closure: DailyClosure) => {
-    const closures = storageService.getClosures();
-    closures.push(closure);
-    localStorage.setItem(KEYS.CLOSURES, JSON.stringify(closures));
-  },
-
-  recordLogin: (user: User) => {
-    const logs: LoginSession[] = JSON.parse(localStorage.getItem(KEYS.LOGIN_LOGS) || '[]');
-    logs.unshift({ id: Date.now().toString(), userId: user.id, userName: user.name, role: user.role, loginTime: new Date().toISOString() });
-    localStorage.setItem(KEYS.LOGIN_LOGS, JSON.stringify(logs));
-  },
-  getLoginLogs: (): LoginSession[] => JSON.parse(localStorage.getItem(KEYS.LOGIN_LOGS) || '[]'),
-  
-  seedMockData: () => {
-    localStorage.clear();
-    window.location.reload();
+  getPurchases: (): Purchase[] => JSON.parse(localStorage.getItem(KEYS.PURCHASES) || '[]'),
+  savePurchase: (p: Purchase) => {
+    const purchases = storageService.getPurchases();
+    purchases.push(p);
+    localStorage.setItem(KEYS.PURCHASES, JSON.stringify(purchases));
   }
 };

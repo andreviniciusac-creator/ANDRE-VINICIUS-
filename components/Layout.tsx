@@ -14,7 +14,8 @@ import {
   MoreHorizontal,
   Wallet,
   CalendarDays,
-  FileSpreadsheet
+  FileSpreadsheet,
+  UserGroup
 } from 'lucide-react';
 import { User, UserRole, UserStatus } from '../types';
 import { storageService } from '../services/storage.ts';
@@ -51,7 +52,8 @@ export const Layout: React.FC<LayoutProps> = ({
 
   const menuItems = [
     ...(isAdmin ? [{ id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard }] : []),
-    { id: 'pos', label: 'Caixa', icon: ShoppingBag },
+    { id: 'pos', label: 'Caixa (PDV)', icon: ShoppingBag },
+    { id: 'customers', label: 'Clientes', icon: Users },
     { id: 'products', label: 'Estoque', icon: Package },
     ...(isAdmin ? [{ id: 'pcp', label: 'Cronograma PCP', icon: CalendarDays }] : []),
     ...(isAdmin ? [{ id: 'financial', label: 'Financeiro', icon: Wallet }] : []),
@@ -65,7 +67,7 @@ export const Layout: React.FC<LayoutProps> = ({
     isAdmin 
       ? { id: 'dashboard', label: 'Início', icon: LayoutDashboard }
       : { id: 'pos', label: 'Vender', icon: ShoppingBag },
-    { id: 'products', label: 'Estoque', icon: Package },
+    { id: 'customers', label: 'Clientes', icon: Users },
     { id: 'reports', label: 'Relatórios', icon: PieChart },
     { id: 'menu', label: 'Menu', icon: MoreHorizontal },
   ];
@@ -125,7 +127,7 @@ export const Layout: React.FC<LayoutProps> = ({
                <span className="text-xs text-gray-600 font-medium">{user.status || 'Ativo'}</span>
             </div>
           </div>
-          <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+          <nav className="flex-1 p-4 space-y-1 overflow-y-auto no-scrollbar">
             {menuItems.map((item) => (
               <button key={item.id} onClick={() => onNavigate(item.id)} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${currentPage === item.id ? 'bg-primary-50 text-primary-700 font-medium shadow-sm ring-1 ring-primary-200' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'}`}>
                 <item.icon size={20} className={currentPage === item.id ? 'text-primary-500' : 'text-gray-400'} />
@@ -146,20 +148,15 @@ export const Layout: React.FC<LayoutProps> = ({
              <button onClick={() => setIsSidebarOpen(false)} className="p-2 bg-gray-100 rounded-full"><X size={20} /></button>
            </div>
            <div className="flex-1 overflow-y-auto p-4 space-y-2">
+              <button onClick={() => { onNavigate('pos'); setIsSidebarOpen(false); }} className="w-full flex items-center gap-4 p-4 rounded-xl hover:bg-gray-50 text-gray-800"><ShoppingBag size={20} /><span>Caixa (Vender)</span></button>
+              <button onClick={() => { onNavigate('customers'); setIsSidebarOpen(false); }} className="w-full flex items-center gap-4 p-4 rounded-xl hover:bg-gray-50 text-gray-800"><Users size={20} /><span>Lista de Clientes</span></button>
+              <button onClick={() => { onNavigate('products'); setIsSidebarOpen(false); }} className="w-full flex items-center gap-4 p-4 rounded-xl hover:bg-gray-50 text-gray-800"><Package size={20} /><span>Estoque</span></button>
               {isAdmin && (
                 <button onClick={() => { onNavigate('pcp'); setIsSidebarOpen(false); }} className="w-full flex items-center gap-4 p-4 rounded-xl hover:bg-gray-50 text-gray-800"><CalendarDays size={20} className="text-primary-600"/><span className="font-medium">Cronograma PCP</span></button>
               )}
               {isAdmin && (
-                <button onClick={() => { onNavigate('financial'); setIsSidebarOpen(false); }} className="w-full flex items-center gap-4 p-4 rounded-xl hover:bg-gray-50 text-gray-800"><Wallet size={20} className="text-primary-600"/><span className="font-medium">Financeiro (OS)</span></button>
+                <button onClick={() => { onNavigate('financial'); setIsSidebarOpen(false); }} className="w-full flex items-center gap-4 p-4 rounded-xl hover:bg-gray-50 text-gray-800"><Wallet size={20} className="text-primary-600"/><span className="font-medium">Financeiro</span></button>
               )}
-              {isAdmin && (
-                <button onClick={() => { onNavigate('accounting'); setIsSidebarOpen(false); }} className="w-full flex items-center gap-4 p-4 rounded-xl hover:bg-gray-50 text-gray-800"><FileSpreadsheet size={20} className="text-primary-600"/><span className="font-medium">Contabilidade</span></button>
-              )}
-              {isAdmin && (
-                <button onClick={() => { onNavigate('users'); setIsSidebarOpen(false); }} className="w-full flex items-center gap-4 p-4 rounded-xl hover:bg-gray-50 text-gray-800"><Users size={20} className="text-primary-600"/><span className="font-medium">Gerenciar Usuários</span></button>
-              )}
-              <button onClick={() => { onNavigate('pos'); setIsSidebarOpen(false); }} className="w-full flex items-center gap-4 p-4 rounded-xl hover:bg-gray-50 text-gray-800"><ShoppingBag size={20} /><span>Caixa</span></button>
-              <button onClick={() => { onNavigate('products'); setIsSidebarOpen(false); }} className="w-full flex items-center gap-4 p-4 rounded-xl hover:bg-gray-50 text-gray-800"><Package size={20} /><span>Estoque</span></button>
               <button onClick={onLogout} className="w-full flex items-center gap-4 p-4 rounded-xl text-red-600 mt-4 border border-red-100 bg-red-50"><LogOut size={20} /><span className="font-medium">Sair do Sistema</span></button>
            </div>
         </div>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { storageService } from '../services/storage.ts';
-import { User, UserRole } from '../types';
+import { User, UserRole, Customer } from '../types';
 import { ShieldCheck, Loader2, ArrowRight, Store } from 'lucide-react';
 
 interface SetupProps {
@@ -34,11 +34,12 @@ export const Setup: React.FC<SetupProps> = ({ onComplete }) => {
     setLoading(true);
 
     try {
-      // Simulate processing time
+      // Simula tempo de processamento
       await new Promise(resolve => setTimeout(resolve, 1500));
 
+      // 1. Criar Usuário Proprietário
       const ownerUser: User = {
-        id: '0', // ID 0 is reserved for Owner
+        id: '0',
         name: formData.name,
         email: formData.email,
         role: UserRole.OWNER,
@@ -47,10 +48,23 @@ export const Setup: React.FC<SetupProps> = ({ onComplete }) => {
         status: 'Ativo'
       };
 
+      // 2. Criar Cliente Padrão para Vendas não identificadas (Conforme solicitado)
+      const anonymousCustomer: Customer = {
+        id: 'anon-001',
+        name: 'Consumidora Não Identificada',
+        phone: '00000000000',
+        cpf: '00000000000',
+        totalSpent: 0,
+        createdAt: new Date().toISOString(),
+        registeredBy: 'SISTEMA'
+      };
+
       storageService.saveUser(ownerUser);
-      onComplete(); // Trigger app reload/login check
-    } catch (err) {
-      setError('Erro ao configurar o sistema.');
+      storageService.saveCustomer(anonymousCustomer);
+      
+      onComplete();
+    } catch (err: any) {
+      setError(err.message || 'Erro ao configurar o sistema.');
     } finally {
       setLoading(false);
     }
@@ -65,8 +79,8 @@ export const Setup: React.FC<SetupProps> = ({ onComplete }) => {
             <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-4 backdrop-blur-sm border border-white/20">
               <Store className="text-white" size={32} />
             </div>
-            <h1 className="text-2xl font-serif font-bold text-white mb-2">Bem-vindo à Kethellem Store</h1>
-            <p className="text-slate-400 text-sm">Configuração Inicial do Sistema</p>
+            <h1 className="text-2xl font-serif font-bold text-white mb-2">Kethellem Store</h1>
+            <p className="text-slate-400 text-sm">Configuração Inicial de Segurança</p>
           </div>
         </div>
 
@@ -75,13 +89,13 @@ export const Setup: React.FC<SetupProps> = ({ onComplete }) => {
              <ShieldCheck className="text-blue-600 flex-shrink-0" size={24} />
              <div className="text-sm text-blue-800">
                <p className="font-bold mb-1">Criação da Conta Proprietária</p>
-               <p>Este será o usuário principal com acesso total ao sistema. Após criar esta conta, você poderá cadastrar gerentes e vendedores.</p>
+               <p>O sistema também criará automaticamente o perfil de <strong>Consumidora Não Identificada</strong> para uso no PDV.</p>
              </div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Nome Completo</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Nome da Proprietária</label>
               <input 
                 type="text" 
                 required
@@ -93,7 +107,7 @@ export const Setup: React.FC<SetupProps> = ({ onComplete }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email Principal</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Email de Acesso</label>
               <input 
                 type="email" 
                 required
@@ -142,7 +156,7 @@ export const Setup: React.FC<SetupProps> = ({ onComplete }) => {
             >
               {loading ? <Loader2 className="animate-spin" /> : (
                 <>
-                  <span>Inicializar Sistema</span>
+                  <span>Configurar e Iniciar</span>
                   <ArrowRight size={20} />
                 </>
               )}
